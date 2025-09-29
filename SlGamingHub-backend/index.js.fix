@@ -1,0 +1,3 @@
+// Add this to index.js after other routes
+const receiptRoutes = require('./routes/receiptRoutes');
+app.use("/api/receipts", receiptRoutes);
