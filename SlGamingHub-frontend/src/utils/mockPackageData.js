@@ -75,7 +75,7 @@ export const mockPackageData = {
     {
       _id: "68b7da6e534a1ad46c578d43",
       packagename: "Diamond x 8000",
-      price: "Rs.18850.00",
+      price: "Rs.18800.00",
       imageUrl: "/assets/cards/11.png",
       gamename: "Free Fire (SG)"
     },
