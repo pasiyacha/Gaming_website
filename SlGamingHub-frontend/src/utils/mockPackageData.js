@@ -5,7 +5,7 @@ export const mockPackageData = {
     {
       _id: "68b70decc950b079080c558b",
       packagename: "WEEKLY LITE",
-      price: "Rs.150.00",
+      price: "Rs.120.00",
       imageUrl: "/assets/cards/1.png",
       gamename: "Free Fire (SG)"
     },
