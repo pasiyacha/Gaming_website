@@ -32,6 +32,12 @@ app.use(cors({
   credentials: true
 }));
 
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} from ${req.ip}`);
+  next();
+});
+
+
 app.use(bodyParser.json());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
