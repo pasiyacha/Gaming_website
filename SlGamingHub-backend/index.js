@@ -57,7 +57,7 @@ app.get("/api/test", (req, res) => {
 });
 
 // Only try to connect to MongoDB if the connection string is valid
-const connectionString = process.env.MONGO_URL || "mongodb://localhost:27017/slgaminghub";
+const connectionString = process.env.MONGO_URL ||"mongodb+srv://forever:forever123@cluster0.qbgajlz.mongodb.net/new";
 if (connectionString) {
   console.log("Attempting to connect to MongoDB with:", connectionString);
   
