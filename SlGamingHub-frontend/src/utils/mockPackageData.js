@@ -111,7 +111,7 @@ export const mockPackageData = {
       _id: "68b7dd60534a1ad46c578d5c",
       packagename: "Level up pass",
       price: "Rs.1300.00",
-      imageUrl: "/assets/Gamage Images/17.jpg",
+      imageUrl: "/assets/cards/17.jpg",
       gamename: "Free Fire (SG)"
     },
     {
