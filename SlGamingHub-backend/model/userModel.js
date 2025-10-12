@@ -63,7 +63,7 @@ const tempUserSchema = new mongoose.Schema({
   }
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema) ;
 const TempUser = mongoose.model("TempUser", tempUserSchema);
 
 module.exports = { User, TempUser };
