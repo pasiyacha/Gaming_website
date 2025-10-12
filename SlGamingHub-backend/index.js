@@ -71,6 +71,7 @@ if (connectionString) {
       const gameRouter = require("./routes/gameRoutes");
       const packageRouter = require("./routes/packageRoutes");
       const orderRouter = require("./routes/orderRoutes");
+      const aiRouter = require("./routes/aiRoutes");
       
       app.use("/api/users", userRoutes);
       app.use("/api/banks", bankRoutes);
@@ -79,6 +80,13 @@ if (connectionString) {
       app.use("/api/order", orderRouter);
       // Add an alias to match frontend expectation
       app.use("/api/orders", orderRouter);
+      
+      // Add receipt routes
+      const receiptRoutes = require('./routes/receiptRoutes');
+      app.use("/api/receipts", receiptRoutes);
+      
+      // Add Claude Sonnet 4 AI routes
+      app.use("/api/ai", aiRouter);
     })
     .catch((err) => {
       console.error("MongoDB Connection Error:", err.message);

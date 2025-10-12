@@ -35,6 +35,7 @@ export const API_CONFIG = {
     PACKAGES: '/packages',
     GAMES: '/games',
     AUTH: '/auth',
+    AI: '/ai',          // Claude Sonnet 4 AI endpoints
   },
   
   // API Timeout in milliseconds
