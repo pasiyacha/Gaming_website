@@ -10,8 +10,8 @@ export const API_CONFIG = {
   // Development URL (used when in development mode)
   DEV_URL: 'http://localhost:5000/api',
   
-  // Production URL (used when in production mode)
-  PROD_URL: 'http://16.170.236.106:5000/api',
+  // Production URL (used when in production mode) - using domain name for production
+  PROD_URL: 'http://slgaminghub.com/api',
   
   // Determines which URL to use based on the environment or environment variables
   get BASE_URL() {

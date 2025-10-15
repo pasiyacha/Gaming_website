@@ -22,14 +22,35 @@ const app = express();
 // Get allowed origins from environment variables or use defaults
 const corsOrigins = process.env.CORS_ORIGINS ? 
   process.env.CORS_ORIGINS.split(',') : 
-  ['http://16.170.236.106', 'http://localhost:5173', 'http://localhost:3000'];
+  [
+    'http://16.170.236.106', 
+    'https://16.170.236.106', 
+    'http://slgaminghub.com', 
+    'https://slgaminghub.com',
+    'http://localhost:5173', 
+    'http://localhost:3000'
+  ];
 
 console.log('CORS configured with origins:', corsOrigins);
 
-// Updated CORS configuration to allow specific origins
+// Enhanced CORS configuration
 app.use(cors({
-  origin: corsOrigins,
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if the origin is in the allowed list
+    if (corsOrigins.indexOf(origin) !== -1 || corsOrigins.indexOf('*') !== -1) {
+      return callback(null, true);
+    } else {
+      console.log('CORS blocked request from:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 
 app.use((req, res, next) => {
@@ -47,12 +68,14 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to SlGamingHub API", status: "Server is running" });
 });
 
-// Test API endpoint
-app.get("/api/test", (req, res) => {
+// Test API endpoint - note this will be accessed as /api/test but served from /test due to Nginx rewrite
+app.get("/test", (req, res) => {
   res.json({ 
     message: "API is working",
     time: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development"
+    environment: process.env.NODE_ENV || "development",
+    origin: req.headers.origin,
+    host: req.headers.host
   });
 });
 
