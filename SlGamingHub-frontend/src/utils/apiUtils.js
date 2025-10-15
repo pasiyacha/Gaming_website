@@ -65,40 +65,62 @@ export const getApiHeaders = (additionalHeaders = {}) => {
  * @returns {Object} - Configured axios instance
  */
 export const createApiClient = () => {
+  // Ensure we have a clean base URL
+  const baseURL = API_CONFIG.BASE_URL;
+  console.log('Creating API client with base URL:', baseURL);
+  
   const client = axios.create({
-    baseURL: API_CONFIG.BASE_URL,
+    baseURL: baseURL,
     timeout: API_CONFIG.TIMEOUT,
-    headers: getApiHeaders()
+    headers: getApiHeaders(),
+    withCredentials: true // Enable credentials for CORS
   });
   
-  // Add request interceptor for logging
-  if (isLoggingEnabled()) {
-    client.interceptors.request.use(
-      (config) => {
-        console.log(`🚀 API Request: ${config.method.toUpperCase()} ${config.url}`);
-        return config;
-      },
-      (error) => {
-        console.error('❌ API Request Error:', error);
-        return Promise.reject(error);
+  // Add request interceptor for logging and debugging
+  client.interceptors.request.use(
+    (config) => {
+      // Ensure the URL is properly constructed
+      const fullUrl = config.baseURL + (config.url || '');
+      
+      if (isLoggingEnabled()) {
+        console.log(`🚀 API Request: ${config.method.toUpperCase()} ${fullUrl}`);
+        console.log('Request headers:', config.headers);
       }
-    );
-    
-    client.interceptors.response.use(
-      (response) => {
+      
+      // Verify the URL doesn't contain malformed parts
+      if (fullUrl.includes(',')) {
+        console.error('🚨 Malformed URL detected:', fullUrl);
+        throw new Error('Invalid API URL configuration');
+      }
+      
+      return config;
+    },
+    (error) => {
+      console.error('❌ API Request Error:', error);
+      return Promise.reject(error);
+    }
+  );
+  
+  client.interceptors.response.use(
+    (response) => {
+      if (isLoggingEnabled()) {
         console.log(`✅ API Response: ${response.status} from ${response.config.url}`);
-        return response;
-      },
-      (error) => {
-        if (error.response) {
-          console.error(`❌ API Error ${error.response.status}: ${error.response.data?.message || error.message}`);
-        } else {
-          console.error('❌ API Error:', error.message);
-        }
-        return Promise.reject(error);
       }
-    );
-  }
+      return response;
+    },
+    (error) => {
+      if (error.response) {
+        console.error(`❌ API Error ${error.response.status}:`, error.response.data?.message || error.message);
+        console.error('Response headers:', error.response.headers);
+      } else if (error.request) {
+        console.error('❌ Network Error - No response received:', error.message);
+        console.error('Request config:', error.config);
+      } else {
+        console.error('❌ Request Setup Error:', error.message);
+      }
+      return Promise.reject(error);
+    }
+  );
   
   return client;
 };

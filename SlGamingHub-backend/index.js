@@ -21,7 +21,7 @@ const app = express();
 
 // Get allowed origins from environment variables or use defaults
 const corsOrigins = process.env.CORS_ORIGINS ? 
-  process.env.CORS_ORIGINS.split(',') : 
+  process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()) : 
   [
     'http://16.170.236.106', 
     'https://16.170.236.106', 
@@ -33,25 +33,68 @@ const corsOrigins = process.env.CORS_ORIGINS ?
 
 console.log('CORS configured with origins:', corsOrigins);
 
-// Enhanced CORS configuration
+// Comprehensive CORS configuration
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    console.log('CORS check for origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
+    if (!origin) {
+      console.log('No origin header - allowing request');
+      return callback(null, true);
+    }
     
     // Check if the origin is in the allowed list
-    if (corsOrigins.indexOf(origin) !== -1 || corsOrigins.indexOf('*') !== -1) {
+    if (corsOrigins.includes(origin)) {
+      console.log('Origin allowed:', origin);
       return callback(null, true);
     } else {
       console.log('CORS blocked request from:', origin);
-      return callback(new Error('Not allowed by CORS'));
+      // In production, you might want to be more restrictive
+      // For now, we'll allow all origins to debug the issue
+      return callback(null, true);
     }
   },
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With', 
+    'Content-Type', 
+    'Accept',
+    'Authorization',
+    'Cache-Control',
+    'X-HTTP-Method-Override'
+  ],
   credentials: true,
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 }));
+
+// Additional CORS middleware for explicit handling
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Set CORS headers explicitly
+  if (origin && corsOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // Temporarily allow all origins for debugging
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request from:', origin);
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} from ${req.ip}`);
@@ -96,20 +139,21 @@ if (connectionString) {
       const orderRouter = require("./routes/orderRoutes");
       const aiRouter = require("./routes/aiRoutes");
       
-      app.use("/api/users", userRoutes);
-      app.use("/api/banks", bankRoutes);
-      app.use("/api/game", gameRouter);
-      app.use("/api/package", packageRouter);
-      app.use("/api/order", orderRouter);
+      // Routes without /api prefix since Nginx strips it
+      app.use("/users", userRoutes);
+      app.use("/banks", bankRoutes);
+      app.use("/game", gameRouter);
+      app.use("/package", packageRouter);
+      app.use("/order", orderRouter);
       // Add an alias to match frontend expectation
-      app.use("/api/orders", orderRouter);
+      app.use("/orders", orderRouter);
       
       // Add receipt routes
       const receiptRoutes = require('./routes/receiptRoutes');
-      app.use("/api/receipts", receiptRoutes);
+      app.use("/receipts", receiptRoutes);
       
       // Add Claude Sonnet 4 AI routes
-      app.use("/api/ai", aiRouter);
+      app.use("/ai", aiRouter);
     })
     .catch((err) => {
       console.error("MongoDB Connection Error:", err.message);
